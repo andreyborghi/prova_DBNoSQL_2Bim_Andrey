@@ -23,7 +23,7 @@ const pipeline = [
   } }
 ];
 
-// Plano + métricas do explain("executionStats") + documentos que entraram no $group, seguido do JSON completo
+
 function resumo(titulo, exp) {
   const cursor = exp.stages ? exp.stages[0].$cursor : exp;
   const stats = cursor.executionStats;
@@ -44,14 +44,11 @@ function resumo(titulo, exp) {
   print(EJSON.stringify(exp, null, 2));
 }
 
-// Antes: sem índice que comece por classe
 if (db.movimentacoes.getIndexes().some(i => i.name === "classe_1_ts_1_terminal_1_peso_kg_1")) db.movimentacoes.dropIndex("classe_1_ts_1_terminal_1_peso_kg_1");
 resumo("B1 antes do índice", db.movimentacoes.explain("executionStats").aggregate(pipeline));
 
-// Índice para o $match: Igualdade (classe) -> Range (ts) + terminal e peso_kg para cobrir o $group
 print("\níndice criado: " + db.movimentacoes.createIndex({ classe: 1, ts: 1, terminal: 1, peso_kg: 1 }));
 resumo("B1 depois do índice", db.movimentacoes.explain("executionStats").aggregate(pipeline));
 
-// Resultado
 print("\n===== B1 resultado =====");
 printjson(db.movimentacoes.aggregate(pipeline).toArray());

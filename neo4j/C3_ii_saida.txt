@@ -1,0 +1,47 @@
+etapa
+"C3 (ii) 1) trecho original com LIMIT 20"
+x.nome
+"Empresa 8"
+"Empresa 15"
+"Empresa 16"
+"Empresa 12"
+"Empresa 5"
+"Empresa 13"
+"Empresa 2"
+"Empresa 16"
+"Empresa 1"
+"Empresa 23"
+"Empresa 24"
+"Empresa 20"
+"Empresa 0"
+"Empresa 25"
+"Empresa 17"
+"Empresa 8"
+"Empresa 14"
+"Empresa 15"
+"Empresa 3"
+"Empresa 6"
+etapa
+"C3 (ii) 2) crescimento dos caminhos sem direção"
+profundidade, caminhos, empresas_distintas
+"1..2", 7, 7
+profundidade, caminhos, empresas_distintas
+"1..4", 60, 27
+profundidade, caminhos, empresas_distintas
+"1..6", 402, 30
+profundidade, caminhos, empresas_distintas
+"1..8", 2212, 30
+profundidade, caminhos, empresas_distintas
+"1..10", 10949, 30
+total_empresas_no_banco
+30
+etapa
+"C3 (ii) 3) correção"
+empresa
+"Empresa 10"
+"Empresa 13"
+"Empresa 19"
+"Empresa 2"
+"Empresa 26"
+"Empresa 3"
+"Empresa 7"

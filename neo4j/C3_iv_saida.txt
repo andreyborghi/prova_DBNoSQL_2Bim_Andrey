@@ -1,0 +1,29 @@
+etapa
+"C3 (iv) 1) trecho original"
+t.nome, count(k)
+"T3", 9
+"T5", 11
+"T4", 13
+"T1", 13
+"T2", 8
+etapa
+"C3 (iv) 2) correção"
+terminal, perigosos_distintos
+"T1", 12
+"T2", 7
+"T3", 8
+"T4", 11
+"T5", 10
+etapa
+"C3 (iv) 3) perigosos que passaram 2 vezes pelo mesmo terminal"
+container, terminal, passagens, datas
+"K19", "T3", 2, ["2026-10-26", "2026-10-20"]
+"K23", "T5", 2, ["2026-10-08", "2026-10-18"]
+"K38", "T4", 2, ["2026-10-01", "2026-10-26"]
+"K46", "T2", 2, ["2026-10-01", "2026-10-17"]
+"K55", "T4", 2, ["2026-10-09", "2026-10-19"]
+"K81", "T1", 2, ["2026-10-27", "2026-10-29"]
+etapa
+"C3 (iv) 4) total de contêineres perigosos"
+perigosos
+27

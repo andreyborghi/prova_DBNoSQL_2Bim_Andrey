@@ -1,0 +1,27 @@
+etapa
+"C1 1) nós por rótulo"
+rotulo, nos
+"Container", 90
+"Empresa", 30
+"Terminal", 5
+etapa
+"C1 2) propriedades dos nós"
+rotulo, propriedade
+"Container", "classe"
+"Container", "id"
+"Empresa", "cnpj"
+"Empresa", "nome"
+"Empresa", "sancionada"
+"Terminal", "nome"
+etapa
+"C1 3) relacionamentos: direção, propriedades e total"
+de, relacionamento, para, propriedades, total
+"Container", "EMPILHADO_SOBRE", "Container", [], 45
+"Container", "PASSOU_POR", "Terminal", ["data"], 180
+"Container", "PERTENCE_A", "Empresa", [], 90
+"Empresa", "SOCIA_DE", "Empresa", ["pct"], 45
+etapa
+"C1 4) subgrafo real: E22 e seus sócios diretos"
+de, nome_de, para, nome_para, pct
+"E22", "Empresa 22", "E19", "Empresa 19", 5
+"E8", "Empresa 8", "E22", "Empresa 22", 59

@@ -1,0 +1,18 @@
+etapa
+"C3 (iii) 1) trecho original (não retorna nenhuma linha)"
+containers_com_id_BASE_DA_PILHA
+0
+etapa
+"C3 (iii) 2) original só com o id trocado para K28"
+linhas
+0
+etapa
+"C3 (iii) 3) a pilha real, do topo para a base"
+pilha
+["K31", "K30", "K29", "K28"]
+etapa
+"C3 (iii) 4) correção"
+container
+"K29"
+"K30"
+"K31"

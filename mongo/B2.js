@@ -2,7 +2,6 @@
 // CLASSE_ALVO = "Refrigerado"
 db = db.getSiblingDB("logiporto");
 
-// Plano + métricas do explain("executionStats") + documentos que entraram no $group
 function resumo(titulo, exp) {
   const cursor = exp.stages ? exp.stages[0].$cursor : exp;
   const stats = cursor.executionStats;
@@ -22,7 +21,6 @@ function resumo(titulo, exp) {
   });
 }
 
-// a) Pipeline original, exatamente como está (CLASSE_ALVO substituída)
 const original = [
   { $project: { terminal: 1, classe: 1 } },
   {
@@ -39,13 +37,11 @@ const original = [
 print("===== B2 a) saída do pipeline original =====");
 printjson(db.movimentacoes.aggregate(original).toArray());
 
-// O $limit sem $sort antes pega 3 grupos arbitrários: a saída muda entre execuções
 print("\n===== B2 a) o mesmo pipeline original executado mais 5 vezes =====");
 for (let i = 1; i <= 5; i++) {
   print("execução " + i + ": " + JSON.stringify(db.movimentacoes.aggregate(original).toArray()));
 }
 
-// c) Pipeline corrigido
 const corrigido = [
   { $match: { classe: "Refrigerado" } },
   { $group: { _id: "$terminal", kg_total: { $sum: "$peso_kg" }, mov: { $sum: 1 } } },
@@ -53,14 +49,12 @@ const corrigido = [
   { $limit: 3 },
   { $project: { _id: 0, terminal: "$_id", kg_total: "$kg_total", mov: "$mov" } }
 ];
-// Índice do B1 (classe, ts, terminal, peso_kg): começa por classe e cobre terminal e peso_kg
 db.movimentacoes.createIndex({ classe: 1, ts: 1, terminal: 1, peso_kg: 1 });
 
 print("\n===== B2 c) saída do pipeline corrigido =====");
 const resultado = db.movimentacoes.aggregate(corrigido).toArray();
 printjson(resultado);
 
-// Comprovação 1: cálculo independente, somando no JavaScript os documentos da classe (sem aggregate)
 print("\n===== B2 c) comprovação: soma independente em JavaScript =====");
 const soma = {};
 db.movimentacoes.find({ classe: "Refrigerado" }, { _id: 0, terminal: 1, peso_kg: 1 }).forEach(d => {
@@ -72,10 +66,8 @@ const ranking = Object.values(soma).sort((a, b) => b.kg_total - a.kg_total);
 printjson(ranking);
 print("top 3 iguais ao pipeline corrigido: " + (JSON.stringify(ranking.slice(0, 3)) === JSON.stringify(resultado)));
 
-// Comprovação 2: código de autenticidade do gerador (LP-RA-n-kg%99991 para Refrigerado + T4)
 const t4 = soma["T4"];
 print("T4: mov = " + t4.mov + " | kg_total % 99991 = " + (t4.kg_total % 99991) + " -> LP-260065492-" + t4.mov + "-" + (t4.kg_total % 99991));
 
-// d) Custo: original x corrigido
 resumo("B2 d) explain do pipeline original", db.movimentacoes.explain("executionStats").aggregate(original));
 resumo("B2 d) explain do pipeline corrigido", db.movimentacoes.explain("executionStats").aggregate(corrigido));

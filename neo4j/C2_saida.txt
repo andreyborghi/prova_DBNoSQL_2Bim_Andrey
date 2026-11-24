@@ -1,0 +1,19 @@
+empresa, container, terminal, data
+"Empresa 7", "K47", "T1", "2026-10-28"
+empresa, nivel
+"Empresa 19", 1
+"Empresa 13", 2
+"Empresa 3", 2
+"Empresa 10", 3
+"Empresa 2", 3
+"Empresa 26", 3
+"Empresa 7", 3
+container_sancionada, terminal, data
+"K1", "T3", "2026-10-03"
+"K79", "T5", "2026-10-07"
+"K0", "T1", "2026-10-08"
+"K0", "T5", "2026-10-14"
+"K79", "T1", "2026-10-16"
+"K1", "T1", "2026-10-20"
+"K2", "T2", "2026-10-23"
+"K2", "T1", "2026-10-28"

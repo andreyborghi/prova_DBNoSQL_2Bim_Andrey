@@ -400,3 +400,183 @@ Com o `$match` no início, o filtro de classe vai para a camada de consulta e pa
 
 Script: [mongo/B2.js](mongo/B2.js) | Saída: [mongo/B2_saida.txt](mongo/B2_saida.txt)
 
+# Parte C — Grafos no Neo4j (40 pontos)
+
+## C1. Modelagem (6 pontos)
+
+### Modelo do grafo
+
+```mermaid
+flowchart LR
+    E["<b>:Empresa</b><br/>cnpj: String<br/>nome: String<br/>sancionada: Boolean"]
+    C["<b>:Container</b><br/>id: String<br/>classe: String"]
+    T["<b>:Terminal</b><br/>nome: String"]
+
+    E -- "SOCIA_DE {pct: Integer}" --> E
+    C -- "PERTENCE_A" --> E
+    C -- "PASSOU_POR {data: String}" --> T
+    C -- "EMPILHADO_SOBRE" --> C
+```
+| Relacionamento | Direção | Propriedades | Significado |
+|---|---|---|---|
+| `SOCIA_DE` | Empresa -> Empresa | `pct` | a empresa de origem detém `pct`% da empresa de destino |
+| `PERTENCE_A` | Container -> Empresa | — | dono do contêiner |
+| `PASSOU_POR` | Container -> Terminal | `data` | uma aresta por passagem (2 por contêiner) |
+| `EMPILHADO_SOBRE` | Container -> Container | — | o contêiner de cima aponta para o de baixo |
+
+### Subgrafo real da EMPRESA_SANCIONADA e seus sócios diretos
+
+```mermaid
+flowchart LR
+    E8["<b>Empresa 8</b><br/>cnpj: E8<br/>sancionada: false"]
+    E22["<b>Empresa 22</b><br/>cnpj: E22<br/>sancionada: true"]
+    E19["<b>Empresa 19</b><br/>cnpj: E19<br/>sancionada: false"]
+
+    E8 -- "SOCIA_DE {pct: 59}" --> E22
+    E22 -- "SOCIA_DE {pct: 5}" --> E19
+
+    style E22 fill:#f8d7da,stroke:#c0392b,stroke-width:2px
+```
+
+- A **Empresa 8** detém **59%** da sancionada.
+- A **sancionada** detém **5%** da **Empresa 19**.
+
+Consulta: [neo4j/C1.cypher](neo4j/C1.cypher) | Saída: [neo4j/C1_saida.txt](neo4j/C1_saida.txt)
+
+## C2. Investigação societária e operacional (7 pontos)
+
+```cypher
+MATCH (s:Empresa {sancionada: true})-[:SOCIA_DE*1..3]->(e:Empresa)
+WHERE e <> s
+MATCH (e)<-[:PERTENCE_A]-(k:Container)-[p:PASSOU_POR]->(t:Terminal)<-[ps:PASSOU_POR]-(:Container)-[:PERTENCE_A]->(s)
+WHERE p.data = ps.data
+RETURN DISTINCT e.nome AS empresa, k.id AS container, t.nome AS terminal, p.data AS data
+ORDER BY empresa, container, data;
+```
+
+| empresa | container | terminal | data |
+|---|---|---|---|
+| Empresa 7 | K47 | T1 | 2026-10-28 |
+
+A rede da sancionada até 3 níveis tem 7 empresas:
+
+- Nível 1: Empresa 19.
+- Nível 2: Empresas 3 e 13.
+- Nível 3: Empresas 2, 7, 10 e 26.
+
+Consulta: [neo4j/C2.cypher](neo4j/C2.cypher) | Saída: [neo4j/C2_saida.txt](neo4j/C2_saida.txt)
+
+**Direção escolhida:**
+
+- **Saída da sancionada:** `(a)-[:SOCIA_DE {pct}]->(b)` significa que `a` é sócia de `b`, ou seja, detém `pct`% de `b`. Para chegar à rede usada pela sancionada, a travessia parte dela seguindo a seta.
+  - Nível 1: empresas em que ela tem participação direta.
+  - Níveis 2 e 3: participações indiretas (empresas das empresas dela).
+- **Por que não sem direção:** a travessia também subiria para os donos da sancionada (Empresa 8, 25, 0 e 17) e desceria para outras empresas desses donos, que não são controladas por ela. Além disso, o número de caminhos explode (ver C3 ii).
+- **Limites:** `*1..3` restringe à profundidade pedida, e `e <> s` impede voltar à própria sancionada por um ciclo.
+- **Mesmo terminal e data:** o segundo `MATCH` liga contêiner da empresa -> terminal ← contêiner da sancionada e compara a `data` das duas arestas `PASSOU_POR`.
+- **DISTINCT:** remove as repetições que surgem quando a empresa é alcançada por mais de um caminho, ou quando a sancionada tem mais de um contêiner no mesmo terminal e data.
+
+## C3. Debug Cypher (12 pontos)
+
+### (i) Registrar que E1 é sócia de E2
+
+- **Sintoma:** surgiram dois nós `Empresa` novos, só com `cnpj` (sem `nome` e sem `sancionada`), ligados entre si. A E1 e a E2 originais continuaram sem a relação. O total de empresas passou de 30 para 32.
+- **Causa raiz:** o `CREATE` cria todos os elementos do padrão que não estão ligados a variáveis já vinculadas. Dentro de um `CREATE`, `(a:Empresa {cnpj:'E1'})` é uma criação, não uma busca. Como não havia restrição de unicidade em `cnpj`, o banco aceitou o duplicado.
+- **Correção** (antes dela, os duplicados foram removidos):
+
+```cypher
+MATCH (e:Empresa) WHERE e.cnpj IN ['E1', 'E2'] AND e.nome IS NULL DETACH DELETE e;
+
+MATCH (a:Empresa {cnpj:'E1'}), (b:Empresa {cnpj:'E2'})
+MERGE (a)-[r:SOCIA_DE]->(b)
+SET r.pct = 30;
+
+CREATE CONSTRAINT empresa_cnpj_unico IF NOT EXISTS FOR (e:Empresa) REQUIRE e.cnpj IS UNIQUE;
+```
+
+O `MATCH` localiza os nós que já existem. O `MERGE` cria a aresta só se ela ainda não existir, então pode rodar de novo sem duplicar. A constraint impede que um `CREATE` repita um cnpj: rodando o trecho original de novo, o Neo4j recusa com `property uniqueness constraint violated`.
+
+- **Evidência:**
+
+| | Nós E1 | Nós E2 | Aresta E1->E2 | Total de empresas |
+|---|---|---|---|---|
+| Antes | 1 | 1 | 0 | 30 |
+| Após o trecho original | 2 | 2 | 1, entre os nós novos sem nome | 32 |
+| Após limpeza + correção | 1 | 1 | 1 (Empresa 1 -> Empresa 2, pct 30) | 30 |
+
+Consulta: [neo4j/C3_i.cypher](neo4j/C3_i.cypher) | Saída: [neo4j/C3_i_saida.txt](neo4j/C3_i_saida.txt)
+
+### (ii) Empresas ligadas à sancionada
+
+- **Sintoma:** com `LIMIT 20`, a consulta retornou nomes repetidos: Empresa 8, 15 e 16 aparecem duas vezes. Também retornou empresas que não são controladas pela sancionada, como a Empresa 0 e a Empresa 25, que estão acima dela na cadeia societária. Sem o `LIMIT`, a consulta não foi executada, como o enunciado orienta.
+- **Causa raiz:**
+  - `*` sem limite expande até esgotar todos os caminhos. Sem direção, cada aresta pode ser percorrida nos dois sentidos.
+  - O Cypher enumera caminhos com relacionamentos distintos, então a quantidade de caminhos cresce exponencialmente com a profundidade, enquanto o número de empresas alcançadas para de crescer.
+  - O retorno é uma linha por caminho, não por nó, o que gera duplicatas. Os ciclos também levam de volta à própria sancionada.
+- **Correção:**
+
+```cypher
+MATCH (s:Empresa {sancionada:true})-[:SOCIA_DE*1..3]->(x:Empresa)
+WHERE x <> s
+RETURN DISTINCT x.nome AS empresa ORDER BY empresa;
+```
+
+- **Evidência:**
+
+| Profundidade (sem direção) | Caminhos | Empresas distintas |
+|---|---|---|
+| 1..2 | 7 | 7 |
+| 1..4 | 60 | 27 |
+| 1..6 | 402 | 30 |
+| 1..8 | 2212 | 30 |
+| 1..10 | 10949 | 30 |
+
+A partir de 6 níveis, as 30 empresas distintas são **todas as empresas do banco**, incluindo a própria sancionada. Mesmo assim, os caminhos seguem multiplicando, cerca de 5× a cada 2 níveis.
+
+Corrigida: **7 empresas, sem repetição**: Empresa 10, 13, 19, 2, 26, 3 e 7.
+
+Consulta: [neo4j/C3_ii.cypher](neo4j/C3_ii.cypher) | Saída: [neo4j/C3_ii_saida.txt](neo4j/C3_ii_saida.txt)
+
+### (iii) Contêineres presos acima da BASE_DA_PILHA (K28)
+
+- **Sintoma:** 0 linhas.
+- **Causa raiz:** há dois defeitos.
+  - **O id é o texto literal `'BASE_DA_PILHA'`:** nenhum contêiner tem esse id (contagem = 0).
+  - **A direção está invertida:** a aresta é `(topo)-[:EMPILHADO_SOBRE]->(base)`, ou seja, aponta de quem está em cima para quem está embaixo. Partindo da base e seguindo a seta para fora, a consulta procura em que a base está apoiada, e não há nada abaixo dela. Mesmo trocando o id para `K28`, o resultado continua com 0 linhas.
+- **Correção:**
+
+```cypher
+MATCH (base:Container {id:'K28'})<-[:EMPILHADO_SOBRE*1..3]-(x:Container)
+RETURN x.id AS container ORDER BY container;
+```
+
+- **Evidência:** antes, 0 linhas, tanto com o literal quanto com `K28` Depois: **K29, K30 e K31**, os 3 contêineres empilhados acima da base. A pilha real, do topo para a base, é K31 -> K30 -> K29 -> K28.
+
+Consulta: [neo4j/C3_iii.cypher](neo4j/C3_iii.cypher) | Saída: [neo4j/C3_iii_saida.txt](neo4j/C3_iii_saida.txt)
+
+### (iv) Contêineres perigosos distintos por terminal
+
+- **Sintoma:** em todos os terminais, a contagem saiu maior que o número real de contêineres perigosos. A soma deu 54, mas existem 27 perigosos com 2 passagens cada.
+- **Causa raiz:** o `MATCH` produz uma linha por caminho `(k)-[:PASSOU_POR]->(t)`. Cada contêiner tem 2 passagens, e quando as duas são pelo mesmo terminal, ele gera 2 linhas nesse terminal. O `count(k)` conta linhas, não contêineres.
+- **Correção:**
+
+```cypher
+MATCH (k:Container)-[:PASSOU_POR]->(t:Terminal) WHERE k.classe = 'Perigoso'
+RETURN t.nome AS terminal, count(DISTINCT k) AS perigosos_distintos ORDER BY terminal;
+```
+
+- **Evidência:**
+
+| Terminal | `count(k)` (antes) | `count(DISTINCT k)` (depois) |
+|---|---|---|
+| T1 | 13 | 12 |
+| T2 | 8 | 7 |
+| T3 | 9 | 8 |
+| T4 | 13 | 11 |
+| T5 | 11 | 10 |
+
+A saída original veio sem ordem (T3, T5, T4, T1, T2), porque o trecho não tem `ORDER BY`. Na tabela, os terminais estão ordenados.
+
+6 contêineres passaram 2 vezes pelo mesmo terminal e foram contados em dobro: K19 (T3), K23 (T5), K38 (T4), K46 (T2), K55 (T4) e K81 (T1). Por isso o T4 tem 2 a mais e os outros terminais têm 1 a mais cada.
+
+Consulta: [neo4j/C3_iv.cypher](neo4j/C3_iv.cypher) | Saída: [neo4j/C3_iv_saida.txt](neo4j/C3_iv_saida.txt)

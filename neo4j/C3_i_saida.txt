@@ -1,0 +1,37 @@
+etapa
+"C3 (i) 1) antes"
+cnpj, nos, nomes
+"E1", 1, ["Empresa 1"]
+"E2", 1, ["Empresa 2"]
+arestas_E1_E2
+0
+etapa
+"C3 (i) 2) trecho original"
+etapa
+"C3 (i) 3) depois do trecho original"
+cnpj, nos, nomes
+"E1", 2, ["Empresa 1"]
+"E2", 2, ["Empresa 2"]
+de, pct, para
+NULL, 30, NULL
+total_empresas
+32
+etapa
+"C3 (i) 4) limpeza dos duplicados"
+removidos
+2
+etapa
+"C3 (i) 5) correção"
+de, pct, para
+"Empresa 1", 30, "Empresa 2"
+etapa
+"C3 (i) 6) depois da correção"
+cnpj, nos, nomes
+"E1", 1, ["Empresa 1"]
+"E2", 1, ["Empresa 2"]
+de, pct, para
+"Empresa 1", 30, "Empresa 2"
+total_empresas
+30
+name, labelsOrTypes, properties, type
+"empresa_cnpj_unico", ["Empresa"], ["cnpj"], "NODE_PROPERTY_UNIQUENESS"

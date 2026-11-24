@@ -1,0 +1,42 @@
+===== A3 1) índice TTL criado =====
+[
+  {
+    v: 2,
+    key: {
+      _id: 1
+    },
+    name: '_id_'
+  },
+  {
+    v: 2,
+    key: {
+      registrado_em: 1
+    },
+    name: 'registrado_em_1',
+    expireAfterSeconds: 2592000
+  }
+]
+
+===== A3 2) tipo BSON de registrado_em =====
+[
+  {
+    _id: 'string',
+    total: 100000
+  }
+]
+{
+  sensor: 'S493',
+  nivel: 'info',
+  registrado_em: '2026-03-25T00:22:02.839Z'
+}
+
+===== A3 3) alertas com mais de 30 dias ainda no banco =====
+limite (agora - 30 dias): 2026-10-25T00:33:39.597Z
+alertas mais antigos que o limite: 99040 de 100000
+
+===== A3 4) contraprova com registrado_em do tipo Date =====
+alerta de teste (Date, 31 dias) inserido: 1
+alerta de teste após ~55 s: 0
+passagens do TTL monitor no período: 1
+documentos apagados pelo TTL no período: 1
+alertas com registrado_em String: 100000

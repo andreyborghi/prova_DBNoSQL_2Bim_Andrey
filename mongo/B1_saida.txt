@@ -1,0 +1,682 @@
+
+===== B1 antes do índice =====
+{
+  plano: '$project <- $sort <- GROUP <- COLLSCAN',
+  totalDocsExamined: 400000,
+  totalKeysExamined: 0,
+  documentosQueEntraramNoGroup: 70040,
+  gruposGerados: 5,
+  executionTimeMillis: 169
+}
+{
+  "explainVersion": "2",
+  "stages": [
+    {
+      "$cursor": {
+        "queryPlanner": {
+          "namespace": "logiporto.movimentacoes",
+          "parsedQuery": {
+            "$and": [
+              {
+                "classe": {
+                  "$eq": "Refrigerado"
+                }
+              },
+              {
+                "ts": {
+                  "$gte": {
+                    "$date": "2026-04-01T00:00:00Z"
+                  }
+                }
+              }
+            ]
+          },
+          "indexFilterSet": false,
+          "queryHash": "7C22EBA7",
+          "planCacheShapeHash": "7C22EBA7",
+          "planCacheKey": "8562D37E",
+          "optimizationTimeMillis": 3,
+          "optimizationTimeMicros": 3954,
+          "cursorType": "regular",
+          "maxIndexedOrSolutionsReached": false,
+          "maxIndexedAndSolutionsReached": false,
+          "maxScansToExplodeReached": false,
+          "prunedSimilarIndexes": false,
+          "winningPlan": {
+            "isCached": false,
+            "queryPlan": {
+              "stage": "GROUP",
+              "planNodeId": 3,
+              "inputStage": {
+                "stage": "COLLSCAN",
+                "planNodeId": 1,
+                "filter": {
+                  "$and": [
+                    {
+                      "classe": {
+                        "$eq": "Refrigerado"
+                      }
+                    },
+                    {
+                      "ts": {
+                        "$gte": {
+                          "$date": "2026-04-01T00:00:00Z"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "nss": "logiporto.movimentacoes",
+                "direction": "forward"
+              }
+            },
+            "slotBasedPlan": {
+              "slots": "$$RESULT=s18 env: {  }",
+              "stages": "[3] project [s18 = newObj(\"_id\", s15, \"total_movimentacoes\", s7, \"peso_total\", s16, \"peso_medio\", s11, \"maior_peso\", s17)] \n[3] project [s16 = doubleDoubleSumFinalize(s10), s17 = (s14 ?: null)] \n[3] group [s15] [s7 = _internalCount::accumulate(s7, 1), s10 = aggDoubleDoubleSum(s3), s11 = _internalArithmeticAverage::accumulate(s11, s3), s14 = max(fillType(s3, 1088, Nothing))] spillSlots[s8, s9, s12, s13] mergingExprs[_internalCount::merge(s8), aggMergeDoubleDoubleSums(s9), _internalArithmeticAverage::merge(s12), max(fillType(s13, 1088, Nothing))] \n[3] project [s15 = (s4 ?: null)] \n[1] filter {(((s5 == \"Refrigerado\") ?: false) && ((s6 >= Date(1775001600000)) ?: false))} \n[1] scan generic [s1 = record, s2 = recordId] [s3 = peso_kg, s4 = terminal, s5 = classe, s6 = ts] @\"312f0e36-8471-45ab-8313-f2948e0a2321\" "
+            }
+          },
+          "rejectedPlans": []
+        },
+        "executionStats": {
+          "executionSuccess": true,
+          "nReturned": 5,
+          "executionTimeMillis": 169,
+          "executionTimeMicros": 169240,
+          "totalKeysExamined": 0,
+          "totalDocsExamined": 400000,
+          "executionStages": {
+            "stage": "project",
+            "planNodeId": 3,
+            "nReturned": 5,
+            "executionTimeMillisEstimate": 159,
+            "opens": 1,
+            "closes": 1,
+            "saveState": 13,
+            "restoreState": 12,
+            "isEOF": 1,
+            "projections": {
+              "18": "newObj(\"_id\", s15, \"total_movimentacoes\", s7, \"peso_total\", s16, \"peso_medio\", s11, \"maior_peso\", s17) "
+            },
+            "inputStage": {
+              "stage": "project",
+              "planNodeId": 3,
+              "nReturned": 5,
+              "executionTimeMillisEstimate": 159,
+              "opens": 1,
+              "closes": 1,
+              "saveState": 13,
+              "restoreState": 12,
+              "isEOF": 1,
+              "projections": {
+                "16": "doubleDoubleSumFinalize(s10) ",
+                "17": "(s14 ?: null) "
+              },
+              "inputStage": {
+                "stage": "group",
+                "planNodeId": 3,
+                "nReturned": 5,
+                "executionTimeMillisEstimate": 159,
+                "opens": 1,
+                "closes": 1,
+                "saveState": 13,
+                "restoreState": 12,
+                "isEOF": 1,
+                "groupBySlots": [
+                  15
+                ],
+                "expressions": {
+                  "7": "_internalCount::accumulate(s7, 1) ",
+                  "10": "aggDoubleDoubleSum(s3) ",
+                  "11": "_internalArithmeticAverage::accumulate(s11, s3) ",
+                  "14": "max(fillType(s3, 1088, Nothing)) ",
+                  "initExprs": {
+                    "7": null,
+                    "10": null,
+                    "11": null,
+                    "14": null,
+                    "mergingExprs": {
+                      "8": "_internalCount::merge(s8) ",
+                      "9": "aggMergeDoubleDoubleSums(s9) ",
+                      "12": "_internalArithmeticAverage::merge(s12) ",
+                      "13": "max(fillType(s13, 1088, Nothing)) "
+                    }
+                  }
+                },
+                "usedDisk": false,
+                "spills": 0,
+                "spilledBytes": 0,
+                "spilledRecords": 0,
+                "spilledDataStorageSize": 0,
+                "peakTrackedMemBytes": 1105,
+                "inputStage": {
+                  "stage": "project",
+                  "planNodeId": 3,
+                  "nReturned": 70040,
+                  "executionTimeMillisEstimate": 119,
+                  "opens": 1,
+                  "closes": 2,
+                  "saveState": 13,
+                  "restoreState": 12,
+                  "isEOF": 1,
+                  "projections": {
+                    "15": "(s4 ?: null) "
+                  },
+                  "inputStage": {
+                    "stage": "filter",
+                    "planNodeId": 1,
+                    "nReturned": 70040,
+                    "executionTimeMillisEstimate": 106,
+                    "opens": 1,
+                    "closes": 2,
+                    "saveState": 13,
+                    "restoreState": 12,
+                    "isEOF": 1,
+                    "numTested": 400000,
+                    "filter": "(((s5 == \"Refrigerado\") ?: false) && ((s6 >= Date(1775001600000)) ?: false)) ",
+                    "inputStage": {
+                      "stage": "scan",
+                      "planNodeId": 1,
+                      "nReturned": 400000,
+                      "executionTimeMillisEstimate": 73,
+                      "opens": 1,
+                      "closes": 1,
+                      "saveState": 13,
+                      "restoreState": 12,
+                      "isEOF": 1,
+                      "numReads": 400000,
+                      "recordSlot": 1,
+                      "recordIdSlot": 2,
+                      "scanFieldNames": [
+                        "peso_kg",
+                        "terminal",
+                        "classe",
+                        "ts"
+                      ],
+                      "scanFieldSlots": [
+                        3,
+                        4,
+                        5,
+                        6
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "nReturned": 5,
+      "executionTimeMillisEstimate": 164
+    },
+    {
+      "$sort": {
+        "sortKey": {
+          "peso_total": -1
+        },
+        "limit": 3
+      },
+      "totalDataSizeSortedBytesEstimate": 1119,
+      "usedDisk": false,
+      "spills": 0,
+      "spilledBytes": 0,
+      "spilledRecords": 0,
+      "spilledDataStorageSize": 0,
+      "nReturned": 3,
+      "executionTimeMillisEstimate": 164,
+      "peakTrackedMemBytes": 1119
+    },
+    {
+      "$project": {
+        "terminal": "$_id",
+        "total_movimentacoes": "$total_movimentacoes",
+        "peso_total": "$peso_total",
+        "peso_medio": {
+          "$round": [
+            "$peso_medio",
+            {
+              "$const": 2
+            }
+          ]
+        },
+        "maior_peso": "$maior_peso",
+        "_id": false
+      },
+      "nReturned": 3,
+      "executionTimeMillisEstimate": 164,
+      "expressionEvaluationPeakMemoryBytes": 0
+    }
+  ],
+  "queryShapeHash": "DA380FB3D58C73B15847664FF842C337772105294DE4EF7AD13C820A9F3B8CC3",
+  "peakTrackedMemBytes": 1119,
+  "serverInfo": {
+    "host": "e9ca4a3fe9fb",
+    "port": 27017,
+    "version": "9.0.4",
+    "gitVersion": "64ade602b836c9adeffba7fa038c887ffab56196"
+  },
+  "serverParameters": {
+    "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+    "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+    "internalQueryProhibitBlockingMergeOnMongoS": 0,
+    "internalQueryFrameworkControl": "trySbeRestricted",
+    "internalQueryPlannerIgnoreIndexWithCollationForRegex": 1
+  },
+  "command": {
+    "aggregate": "movimentacoes",
+    "pipeline": [
+      {
+        "$match": {
+          "classe": "Refrigerado",
+          "ts": {
+            "$gte": {
+              "$date": "2026-04-01T00:00:00Z"
+            }
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$terminal",
+          "total_movimentacoes": {
+            "$sum": 1
+          },
+          "peso_total": {
+            "$sum": "$peso_kg"
+          },
+          "peso_medio": {
+            "$avg": "$peso_kg"
+          },
+          "maior_peso": {
+            "$max": "$peso_kg"
+          }
+        }
+      },
+      {
+        "$sort": {
+          "peso_total": -1
+        }
+      },
+      {
+        "$limit": 3
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "terminal": "$_id",
+          "total_movimentacoes": "$total_movimentacoes",
+          "peso_total": "$peso_total",
+          "peso_medio": {
+            "$round": [
+              "$peso_medio",
+              2
+            ]
+          },
+          "maior_peso": "$maior_peso"
+        }
+      }
+    ],
+    "cursor": {},
+    "$db": "logiporto"
+  },
+  "ok": 1
+}
+
+índice criado: classe_1_ts_1_terminal_1_peso_kg_1
+
+===== B1 depois do índice =====
+{
+  plano: '$project <- $sort <- GROUP <- PROJECTION_COVERED <- IXSCAN',
+  totalDocsExamined: 0,
+  totalKeysExamined: 70040,
+  documentosQueEntraramNoGroup: 70040,
+  gruposGerados: 5,
+  executionTimeMillis: 48
+}
+{
+  "explainVersion": "2",
+  "stages": [
+    {
+      "$cursor": {
+        "queryPlanner": {
+          "namespace": "logiporto.movimentacoes",
+          "parsedQuery": {
+            "$and": [
+              {
+                "classe": {
+                  "$eq": "Refrigerado"
+                }
+              },
+              {
+                "ts": {
+                  "$gte": {
+                    "$date": "2026-04-01T00:00:00Z"
+                  }
+                }
+              }
+            ]
+          },
+          "indexFilterSet": false,
+          "queryHash": "7C22EBA7",
+          "planCacheShapeHash": "7C22EBA7",
+          "planCacheKey": "8798C351",
+          "optimizationTimeMillis": 2,
+          "optimizationTimeMicros": 2879,
+          "cursorType": "regular",
+          "maxIndexedOrSolutionsReached": false,
+          "maxIndexedAndSolutionsReached": false,
+          "maxScansToExplodeReached": false,
+          "prunedSimilarIndexes": false,
+          "winningPlan": {
+            "isCached": false,
+            "queryPlan": {
+              "stage": "GROUP",
+              "planNodeId": 3,
+              "inputStage": {
+                "stage": "PROJECTION_COVERED",
+                "planNodeId": 2,
+                "transformBy": {
+                  "peso_kg": true,
+                  "terminal": true,
+                  "_id": false
+                },
+                "inputStage": {
+                  "stage": "IXSCAN",
+                  "planNodeId": 1,
+                  "nss": "logiporto.movimentacoes",
+                  "keyPattern": {
+                    "classe": 1,
+                    "ts": 1,
+                    "terminal": 1,
+                    "peso_kg": 1
+                  },
+                  "indexName": "classe_1_ts_1_terminal_1_peso_kg_1",
+                  "isMultiKey": false,
+                  "multiKeyPaths": {
+                    "classe": [],
+                    "ts": [],
+                    "terminal": [],
+                    "peso_kg": []
+                  },
+                  "isUnique": false,
+                  "isSparse": false,
+                  "isPartial": false,
+                  "indexVersion": 2,
+                  "direction": "forward",
+                  "indexBounds": {
+                    "classe": [
+                      "[\"Refrigerado\", \"Refrigerado\"]"
+                    ],
+                    "ts": [
+                      "[new Date(1775001600000), new Date(9223372036854775807)]"
+                    ],
+                    "terminal": [
+                      "[MinKey, MaxKey]"
+                    ],
+                    "peso_kg": [
+                      "[MinKey, MaxKey]"
+                    ]
+                  }
+                }
+              }
+            },
+            "slotBasedPlan": {
+              "slots": "$$RESULT=s15 env: {  }",
+              "stages": "[3] project [s15 = newObj(\"_id\", s12, \"total_movimentacoes\", s4, \"peso_total\", s13, \"peso_medio\", s8, \"maior_peso\", s14)] \n[3] project [s13 = doubleDoubleSumFinalize(s7), s14 = (s11 ?: null)] \n[3] group [s12] [s4 = _internalCount::accumulate(s4, 1), s7 = aggDoubleDoubleSum(s3), s8 = _internalArithmeticAverage::accumulate(s8, s3), s11 = max(fillType(s3, 1088, Nothing))] spillSlots[s5, s6, s9, s10] mergingExprs[_internalCount::merge(s5), aggMergeDoubleDoubleSums(s6), _internalArithmeticAverage::merge(s9), max(fillType(s10, 1088, Nothing))] \n[3] project [s12 = (s2 ?: null)] \n[1] ixseek seekKeyLow = KS(3C526566726967657261646F00788000019D465700000A0A01) seekKeyHigh = KS(3C526566726967657261646F0078FFFFFFFFFFFFFFFFF0F0FE) [s1 = recordId] [s2 = 2, s3 = 3] @\"312f0e36-8471-45ab-8313-f2948e0a2321\" @\"classe_1_ts_1_terminal_1_peso_kg_1\" forward "
+            }
+          },
+          "rejectedPlans": []
+        },
+        "executionStats": {
+          "executionSuccess": true,
+          "nReturned": 5,
+          "executionTimeMillis": 48,
+          "executionTimeMicros": 48171,
+          "totalKeysExamined": 70040,
+          "totalDocsExamined": 0,
+          "executionStages": {
+            "stage": "project",
+            "planNodeId": 3,
+            "nReturned": 5,
+            "executionTimeMillisEstimate": 43,
+            "opens": 1,
+            "closes": 1,
+            "saveState": 5,
+            "restoreState": 4,
+            "isEOF": 1,
+            "projections": {
+              "15": "newObj(\"_id\", s12, \"total_movimentacoes\", s4, \"peso_total\", s13, \"peso_medio\", s8, \"maior_peso\", s14) "
+            },
+            "inputStage": {
+              "stage": "project",
+              "planNodeId": 3,
+              "nReturned": 5,
+              "executionTimeMillisEstimate": 43,
+              "opens": 1,
+              "closes": 1,
+              "saveState": 5,
+              "restoreState": 4,
+              "isEOF": 1,
+              "projections": {
+                "13": "doubleDoubleSumFinalize(s7) ",
+                "14": "(s11 ?: null) "
+              },
+              "inputStage": {
+                "stage": "group",
+                "planNodeId": 3,
+                "nReturned": 5,
+                "executionTimeMillisEstimate": 43,
+                "opens": 1,
+                "closes": 1,
+                "saveState": 5,
+                "restoreState": 4,
+                "isEOF": 1,
+                "groupBySlots": [
+                  12
+                ],
+                "expressions": {
+                  "4": "_internalCount::accumulate(s4, 1) ",
+                  "7": "aggDoubleDoubleSum(s3) ",
+                  "8": "_internalArithmeticAverage::accumulate(s8, s3) ",
+                  "11": "max(fillType(s3, 1088, Nothing)) ",
+                  "initExprs": {
+                    "4": null,
+                    "7": null,
+                    "8": null,
+                    "11": null,
+                    "mergingExprs": {
+                      "5": "_internalCount::merge(s5) ",
+                      "6": "aggMergeDoubleDoubleSums(s6) ",
+                      "9": "_internalArithmeticAverage::merge(s9) ",
+                      "10": "max(fillType(s10, 1088, Nothing)) "
+                    }
+                  }
+                },
+                "usedDisk": false,
+                "spills": 0,
+                "spilledBytes": 0,
+                "spilledRecords": 0,
+                "spilledDataStorageSize": 0,
+                "peakTrackedMemBytes": 1105,
+                "inputStage": {
+                  "stage": "project",
+                  "planNodeId": 3,
+                  "nReturned": 70040,
+                  "executionTimeMillisEstimate": 32,
+                  "opens": 1,
+                  "closes": 2,
+                  "saveState": 5,
+                  "restoreState": 4,
+                  "isEOF": 1,
+                  "projections": {
+                    "12": "(s2 ?: null) "
+                  },
+                  "inputStage": {
+                    "stage": "ixseek",
+                    "planNodeId": 1,
+                    "nReturned": 70040,
+                    "executionTimeMillisEstimate": 32,
+                    "opens": 1,
+                    "closes": 2,
+                    "saveState": 5,
+                    "restoreState": 4,
+                    "isEOF": 1,
+                    "indexName": "classe_1_ts_1_terminal_1_peso_kg_1",
+                    "keysExamined": 70040,
+                    "seeks": 1,
+                    "numReads": 70041,
+                    "recordIdSlot": 1,
+                    "outputSlots": [
+                      2,
+                      3
+                    ],
+                    "indexKeysToInclude": "00000000000000000000000000001100",
+                    "seekKeyLow": "KS(3C526566726967657261646F00788000019D465700000A0A01) ",
+                    "seekKeyHigh": "KS(3C526566726967657261646F0078FFFFFFFFFFFFFFFFF0F0FE) "
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "nReturned": 5,
+      "executionTimeMillisEstimate": 44
+    },
+    {
+      "$sort": {
+        "sortKey": {
+          "peso_total": -1
+        },
+        "limit": 3
+      },
+      "totalDataSizeSortedBytesEstimate": 1119,
+      "usedDisk": false,
+      "spills": 0,
+      "spilledBytes": 0,
+      "spilledRecords": 0,
+      "spilledDataStorageSize": 0,
+      "nReturned": 3,
+      "executionTimeMillisEstimate": 44,
+      "peakTrackedMemBytes": 1119
+    },
+    {
+      "$project": {
+        "terminal": "$_id",
+        "total_movimentacoes": "$total_movimentacoes",
+        "peso_total": "$peso_total",
+        "peso_medio": {
+          "$round": [
+            "$peso_medio",
+            {
+              "$const": 2
+            }
+          ]
+        },
+        "maior_peso": "$maior_peso",
+        "_id": false
+      },
+      "nReturned": 3,
+      "executionTimeMillisEstimate": 44,
+      "expressionEvaluationPeakMemoryBytes": 0
+    }
+  ],
+  "queryShapeHash": "DA380FB3D58C73B15847664FF842C337772105294DE4EF7AD13C820A9F3B8CC3",
+  "peakTrackedMemBytes": 1119,
+  "serverInfo": {
+    "host": "e9ca4a3fe9fb",
+    "port": 27017,
+    "version": "9.0.4",
+    "gitVersion": "64ade602b836c9adeffba7fa038c887ffab56196"
+  },
+  "serverParameters": {
+    "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+    "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+    "internalQueryProhibitBlockingMergeOnMongoS": 0,
+    "internalQueryFrameworkControl": "trySbeRestricted",
+    "internalQueryPlannerIgnoreIndexWithCollationForRegex": 1
+  },
+  "command": {
+    "aggregate": "movimentacoes",
+    "pipeline": [
+      {
+        "$match": {
+          "classe": "Refrigerado",
+          "ts": {
+            "$gte": {
+              "$date": "2026-04-01T00:00:00Z"
+            }
+          }
+        }
+      },
+      {
+        "$group": {
+          "_id": "$terminal",
+          "total_movimentacoes": {
+            "$sum": 1
+          },
+          "peso_total": {
+            "$sum": "$peso_kg"
+          },
+          "peso_medio": {
+            "$avg": "$peso_kg"
+          },
+          "maior_peso": {
+            "$max": "$peso_kg"
+          }
+        }
+      },
+      {
+        "$sort": {
+          "peso_total": -1
+        }
+      },
+      {
+        "$limit": 3
+      },
+      {
+        "$project": {
+          "_id": 0,
+          "terminal": "$_id",
+          "total_movimentacoes": "$total_movimentacoes",
+          "peso_total": "$peso_total",
+          "peso_medio": {
+            "$round": [
+              "$peso_medio",
+              2
+            ]
+          },
+          "maior_peso": "$maior_peso"
+        }
+      }
+    ],
+    "cursor": {},
+    "$db": "logiporto"
+  },
+  "ok": 1
+}
+
+===== B1 resultado =====
+[
+  {
+    terminal: 'T2',
+    total_movimentacoes: 14024,
+    peso_total: 224842255,
+    peso_medio: 16032.68,
+    maior_peso: 30996
+  },
+  {
+    terminal: 'T3',
+    total_movimentacoes: 13971,
+    peso_total: 224807218,
+    peso_medio: 16090.99,
+    maior_peso: 30999
+  },
+  {
+    terminal: 'T4',
+    total_movimentacoes: 14079,
+    peso_total: 224752356,
+    peso_medio: 15963.66,
+    maior_peso: 30999
+  }
+]

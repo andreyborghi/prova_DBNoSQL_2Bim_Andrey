@@ -1,0 +1,86 @@
+===== B2 a) saída do pipeline original =====
+[
+  {
+    _id: {
+      terminal: 'T1',
+      classe: 'Refrigerado'
+    },
+    kg_total: 0,
+    mov: 19856
+  }
+]
+
+execução 1: [{"_id":{"terminal":"T3","classe":"Refrigerado"},"kg_total":0,"mov":19985}]
+execução 2: [{"_id":{"terminal":"T2","classe":"Refrigerado"},"kg_total":0,"mov":20106}]
+execução 3: [{"_id":{"terminal":"T3","classe":"Refrigerado"},"kg_total":0,"mov":19985}]
+execução 4: [{"_id":{"terminal":"T2","classe":"Refrigerado"},"kg_total":0,"mov":20106}]
+execução 5: [{"_id":{"terminal":"T3","classe":"Refrigerado"},"kg_total":0,"mov":19985}]
+
+[
+  {
+    terminal: 'T4',
+    kg_total: 321551526,
+    mov: 20049
+  },
+  {
+    terminal: 'T2',
+    kg_total: 321512580,
+    mov: 20106
+  },
+  {
+    terminal: 'T3',
+    kg_total: 320591467,
+    mov: 19985
+  }
+]
+
+===== B2 c) comprovação =====
+[
+  {
+    terminal: 'T4',
+    kg_total: 321551526,
+    mov: 20049
+  },
+  {
+    terminal: 'T2',
+    kg_total: 321512580,
+    mov: 20106
+  },
+  {
+    terminal: 'T3',
+    kg_total: 320591467,
+    mov: 19985
+  },
+  {
+    terminal: 'T5',
+    kg_total: 320556473,
+    mov: 20066
+  },
+  {
+    terminal: 'T1',
+    kg_total: 317130089,
+    mov: 19856
+  }
+]
+top 3 iguais ao pipeline corrigido: true
+T4: mov = 20049 | kg_total % 99991 = 80461 -> LP-260065492-20049-80461
+
+===== B2 d) explain do pipeline original =====
+{
+  plano: '$sort <- $match <- $limit <- GROUP <- COLLSCAN',
+  totalDocsExamined: 400000,
+  totalKeysExamined: 0,
+  documentosQueEntraramNoGroup: 400000,
+  gruposGerados: 20,
+  executionTimeMillis: 131
+}
+
+===== B2 d) explain do pipeline corrigido =====
+{
+  plano: '$project <- $sort <- GROUP <- PROJECTION_COVERED <- IXSCAN',
+  totalDocsExamined: 0,
+  totalKeysExamined: 100062,
+  documentosQueEntraramNoGroup: 100062,
+  gruposGerados: 5,
+  executionTimeMillis: 37
+}

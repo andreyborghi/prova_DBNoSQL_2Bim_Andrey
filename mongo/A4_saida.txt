@@ -1,0 +1,484 @@
+índice criado: tipo_1_terminal_1_container_1
+
+===== A4 1) projeção { _id: 0, container: 1 } =====
+{
+  indice: 'tipo_1_terminal_1_container_1',
+  stage: 'PROJECTION_COVERED <- IXSCAN',
+  totalDocsExamined: 0,
+  totalKeysExamined: 16124,
+  nReturned: 16124,
+  executionTimeMillis: 18
+}
+{
+  "explainVersion": "1",
+  "queryPlanner": {
+    "namespace": "logiporto.movimentacoes",
+    "parsedQuery": {
+      "$and": [
+        {
+          "terminal": {
+            "$eq": "T4"
+          }
+        },
+        {
+          "tipo": {
+            "$eq": "inspecao"
+          }
+        }
+      ]
+    },
+    "indexFilterSet": false,
+    "queryHash": "86CA8711",
+    "planCacheShapeHash": "86CA8711",
+    "planCacheKey": "E2A6CBB5",
+    "optimizationTimeMillis": 6,
+    "optimizationTimeMicros": 6418,
+    "maxIndexedOrSolutionsReached": false,
+    "maxIndexedAndSolutionsReached": false,
+    "maxScansToExplodeReached": false,
+    "prunedSimilarIndexes": false,
+    "winningPlan": {
+      "isCached": false,
+      "stage": "PROJECTION_COVERED",
+      "transformBy": {
+        "_id": 0,
+        "container": 1
+      },
+      "inputStage": {
+        "stage": "IXSCAN",
+        "nss": "logiporto.movimentacoes",
+        "keyPattern": {
+          "tipo": 1,
+          "terminal": 1,
+          "container": 1
+        },
+        "indexName": "tipo_1_terminal_1_container_1",
+        "isMultiKey": false,
+        "multiKeyPaths": {
+          "tipo": [],
+          "terminal": [],
+          "container": []
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+          "tipo": [
+            "[\"inspecao\", \"inspecao\"]"
+          ],
+          "terminal": [
+            "[\"T4\", \"T4\"]"
+          ],
+          "container": [
+            "[MinKey, MaxKey]"
+          ]
+        }
+      }
+    },
+    "rejectedPlans": [
+      {
+        "isCached": false,
+        "stage": "PROJECTION_SIMPLE",
+        "transformBy": {
+          "_id": 0,
+          "container": 1
+        },
+        "inputStage": {
+          "stage": "FETCH",
+          "filter": {
+            "tipo": {
+              "$eq": "inspecao"
+            }
+          },
+          "nss": "logiporto.movimentacoes",
+          "inputStage": {
+            "stage": "IXSCAN",
+            "nss": "logiporto.movimentacoes",
+            "keyPattern": {
+              "terminal": 1,
+              "classe": 1,
+              "peso_kg": -1,
+              "ts": 1
+            },
+            "indexName": "terminal_1_classe_1_peso_kg_-1_ts_1",
+            "isMultiKey": false,
+            "multiKeyPaths": {
+              "terminal": [],
+              "classe": [],
+              "peso_kg": [],
+              "ts": []
+            },
+            "isUnique": false,
+            "isSparse": false,
+            "isPartial": false,
+            "indexVersion": 2,
+            "direction": "forward",
+            "indexBounds": {
+              "terminal": [
+                "[\"T4\", \"T4\"]"
+              ],
+              "classe": [
+                "[MinKey, MaxKey]"
+              ],
+              "peso_kg": [
+                "[MaxKey, MinKey]"
+              ],
+              "ts": [
+                "[MinKey, MaxKey]"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "executionStats": {
+    "executionSuccess": true,
+    "nReturned": 16124,
+    "executionTimeMillis": 18,
+    "executionTimeMicros": 18048,
+    "totalKeysExamined": 16124,
+    "totalDocsExamined": 0,
+    "executionStages": {
+      "isCached": false,
+      "stage": "PROJECTION_COVERED",
+      "nReturned": 16124,
+      "executionTimeMillisEstimate": 16,
+      "works": 16125,
+      "advanced": 16124,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 2,
+      "restoreState": 2,
+      "isEOF": 1,
+      "transformBy": {
+        "_id": 0,
+        "container": 1
+      },
+      "inputStage": {
+        "stage": "IXSCAN",
+        "nReturned": 16124,
+        "executionTimeMillisEstimate": 4,
+        "works": 16125,
+        "advanced": 16124,
+        "needTime": 0,
+        "needYield": 0,
+        "saveState": 2,
+        "restoreState": 2,
+        "isEOF": 1,
+        "nss": "logiporto.movimentacoes",
+        "keyPattern": {
+          "tipo": 1,
+          "terminal": 1,
+          "container": 1
+        },
+        "indexName": "tipo_1_terminal_1_container_1",
+        "isMultiKey": false,
+        "multiKeyPaths": {
+          "tipo": [],
+          "terminal": [],
+          "container": []
+        },
+        "isUnique": false,
+        "isSparse": false,
+        "isPartial": false,
+        "indexVersion": 2,
+        "direction": "forward",
+        "indexBounds": {
+          "tipo": [
+            "[\"inspecao\", \"inspecao\"]"
+          ],
+          "terminal": [
+            "[\"T4\", \"T4\"]"
+          ],
+          "container": [
+            "[MinKey, MaxKey]"
+          ]
+        },
+        "keysExamined": 16124,
+        "seeks": 1,
+        "dupsTested": 0,
+        "dupsDropped": 0,
+        "peakTrackedMemBytes": 0
+      }
+    }
+  },
+  "queryShapeHash": "93C4BD8A327B09DBBFD489C25B0B8D72A13BD22A3C586323986AEE304AFCA60D",
+  "command": {
+    "find": "movimentacoes",
+    "filter": {
+      "tipo": "inspecao",
+      "terminal": "T4"
+    },
+    "projection": {
+      "_id": 0,
+      "container": 1
+    },
+    "$db": "logiporto"
+  },
+  "serverInfo": {
+    "host": "e9ca4a3fe9fb",
+    "port": 27017,
+    "version": "9.0.4",
+    "gitVersion": "64ade602b836c9adeffba7fa038c887ffab56196"
+  },
+  "serverParameters": {
+    "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+    "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+    "internalQueryProhibitBlockingMergeOnMongoS": 0,
+    "internalQueryFrameworkControl": "trySbeRestricted",
+    "internalQueryPlannerIgnoreIndexWithCollationForRegex": 1
+  },
+  "ok": 1
+}
+
+===== A4 2) projeção { container: 1 } =====
+{
+  indice: 'tipo_1_terminal_1_container_1',
+  stage: 'PROJECTION_SIMPLE <- FETCH <- IXSCAN',
+  totalDocsExamined: 16124,
+  totalKeysExamined: 16124,
+  nReturned: 16124,
+  executionTimeMillis: 38
+}
+{
+  "explainVersion": "1",
+  "queryPlanner": {
+    "namespace": "logiporto.movimentacoes",
+    "parsedQuery": {
+      "$and": [
+        {
+          "terminal": {
+            "$eq": "T4"
+          }
+        },
+        {
+          "tipo": {
+            "$eq": "inspecao"
+          }
+        }
+      ]
+    },
+    "indexFilterSet": false,
+    "queryHash": "76FEF3CC",
+    "planCacheShapeHash": "76FEF3CC",
+    "planCacheKey": "7DC347A3",
+    "optimizationTimeMillis": 1,
+    "optimizationTimeMicros": 1464,
+    "maxIndexedOrSolutionsReached": false,
+    "maxIndexedAndSolutionsReached": false,
+    "maxScansToExplodeReached": false,
+    "prunedSimilarIndexes": false,
+    "winningPlan": {
+      "isCached": false,
+      "stage": "PROJECTION_SIMPLE",
+      "transformBy": {
+        "container": 1
+      },
+      "inputStage": {
+        "stage": "FETCH",
+        "nss": "logiporto.movimentacoes",
+        "inputStage": {
+          "stage": "IXSCAN",
+          "nss": "logiporto.movimentacoes",
+          "keyPattern": {
+            "tipo": 1,
+            "terminal": 1,
+            "container": 1
+          },
+          "indexName": "tipo_1_terminal_1_container_1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "tipo": [],
+            "terminal": [],
+            "container": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "tipo": [
+              "[\"inspecao\", \"inspecao\"]"
+            ],
+            "terminal": [
+              "[\"T4\", \"T4\"]"
+            ],
+            "container": [
+              "[MinKey, MaxKey]"
+            ]
+          }
+        }
+      }
+    },
+    "rejectedPlans": [
+      {
+        "isCached": false,
+        "stage": "PROJECTION_SIMPLE",
+        "transformBy": {
+          "container": 1
+        },
+        "inputStage": {
+          "stage": "FETCH",
+          "filter": {
+            "tipo": {
+              "$eq": "inspecao"
+            }
+          },
+          "nss": "logiporto.movimentacoes",
+          "inputStage": {
+            "stage": "IXSCAN",
+            "nss": "logiporto.movimentacoes",
+            "keyPattern": {
+              "terminal": 1,
+              "classe": 1,
+              "peso_kg": -1,
+              "ts": 1
+            },
+            "indexName": "terminal_1_classe_1_peso_kg_-1_ts_1",
+            "isMultiKey": false,
+            "multiKeyPaths": {
+              "terminal": [],
+              "classe": [],
+              "peso_kg": [],
+              "ts": []
+            },
+            "isUnique": false,
+            "isSparse": false,
+            "isPartial": false,
+            "indexVersion": 2,
+            "direction": "forward",
+            "indexBounds": {
+              "terminal": [
+                "[\"T4\", \"T4\"]"
+              ],
+              "classe": [
+                "[MinKey, MaxKey]"
+              ],
+              "peso_kg": [
+                "[MaxKey, MinKey]"
+              ],
+              "ts": [
+                "[MinKey, MaxKey]"
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  "executionStats": {
+    "executionSuccess": true,
+    "nReturned": 16124,
+    "executionTimeMillis": 38,
+    "executionTimeMicros": 38397,
+    "totalKeysExamined": 16124,
+    "totalDocsExamined": 16124,
+    "executionStages": {
+      "isCached": false,
+      "stage": "PROJECTION_SIMPLE",
+      "nReturned": 16124,
+      "executionTimeMillisEstimate": 38,
+      "works": 16125,
+      "advanced": 16124,
+      "needTime": 0,
+      "needYield": 0,
+      "saveState": 3,
+      "restoreState": 3,
+      "isEOF": 1,
+      "transformBy": {
+        "container": 1
+      },
+      "inputStage": {
+        "stage": "FETCH",
+        "nReturned": 16124,
+        "executionTimeMillisEstimate": 33,
+        "works": 16125,
+        "advanced": 16124,
+        "needTime": 0,
+        "needYield": 0,
+        "saveState": 3,
+        "restoreState": 3,
+        "isEOF": 1,
+        "nss": "logiporto.movimentacoes",
+        "docsExamined": 16124,
+        "alreadyHasObj": 0,
+        "inputStage": {
+          "stage": "IXSCAN",
+          "nReturned": 16124,
+          "executionTimeMillisEstimate": 0,
+          "works": 16125,
+          "advanced": 16124,
+          "needTime": 0,
+          "needYield": 0,
+          "saveState": 3,
+          "restoreState": 3,
+          "isEOF": 1,
+          "nss": "logiporto.movimentacoes",
+          "keyPattern": {
+            "tipo": 1,
+            "terminal": 1,
+            "container": 1
+          },
+          "indexName": "tipo_1_terminal_1_container_1",
+          "isMultiKey": false,
+          "multiKeyPaths": {
+            "tipo": [],
+            "terminal": [],
+            "container": []
+          },
+          "isUnique": false,
+          "isSparse": false,
+          "isPartial": false,
+          "indexVersion": 2,
+          "direction": "forward",
+          "indexBounds": {
+            "tipo": [
+              "[\"inspecao\", \"inspecao\"]"
+            ],
+            "terminal": [
+              "[\"T4\", \"T4\"]"
+            ],
+            "container": [
+              "[MinKey, MaxKey]"
+            ]
+          },
+          "keysExamined": 16124,
+          "seeks": 1,
+          "dupsTested": 0,
+          "dupsDropped": 0,
+          "peakTrackedMemBytes": 0
+        }
+      }
+    }
+  },
+  "queryShapeHash": "49920E6D6DE1A29E197A43A92715F32E50BB0D529EBA89F8B7F9B325AA0CD9E8",
+  "command": {
+    "find": "movimentacoes",
+    "filter": {
+      "tipo": "inspecao",
+      "terminal": "T4"
+    },
+    "projection": {
+      "container": 1
+    },
+    "$db": "logiporto"
+  },
+  "serverInfo": {
+    "host": "e9ca4a3fe9fb",
+    "port": 27017,
+    "version": "9.0.4",
+    "gitVersion": "64ade602b836c9adeffba7fa038c887ffab56196"
+  },
+  "serverParameters": {
+    "internalQueryFacetMaxOutputDocSizeBytes": 104857600,
+    "internalLookupStageIntermediateDocumentMaxSizeBytes": 104857600,
+    "internalQueryProhibitBlockingMergeOnMongoS": 0,
+    "internalQueryFrameworkControl": "trySbeRestricted",
+    "internalQueryPlannerIgnoreIndexWithCollationForRegex": 1
+  },
+  "ok": 1
+}

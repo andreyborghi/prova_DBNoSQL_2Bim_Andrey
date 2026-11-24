@@ -63,7 +63,7 @@ db.movimentacoes.createIndex({ terminal: 1, classe: 1, peso_kg: -1, ts: 1 })
 
 | Métrica | a) sem índice | b) ordem do filtro | c) ESR |
 |---|---|---|---|
-| Stage | SORT ← COLLSCAN | FETCH ← SORT ← IXSCAN | LIMIT ← FETCH ← IXSCAN |
+| Stage | SORT <- COLLSCAN | FETCH <- SORT <- IXSCAN | LIMIT <- FETCH <- IXSCAN |
 | totalDocsExamined | 400000 | 20 | 20 |
 | totalKeysExamined | 0 | 14079 | 30 |
 | nReturned | 20 | 20 | 20 |
@@ -185,4 +185,218 @@ db.alertas.insertOne({ sensor: "S1", nivel: "critico", registrado_em: new Date()
 
 db.alertas.insertOne({ sensor: "S1", nivel: "critico", registrado_em: new Date() })
 ```
+
+## A4. Consulta coberta (7 pontos)
+
+### Índice criado
+
+```javascript
+db.movimentacoes.createIndex({ tipo: 1, terminal: 1, container: 1 })
+```
+
+- tipo e terminal: campos de igualdade do filtro
+- container: único campo da projeção, no fim da chave. Assim o IXSCAN já tem o valor que precisa devolver.
+
+### 1) Projeção `{ _id: 0, container: 1 }`
+
+```javascript
+db.movimentacoes.find(
+  { tipo: "inspecao", terminal: "T4" },
+  { _id: 0, container: 1 }
+).explain("executionStats")
+```
+
+- indice: 'tipo_1_terminal_1_container_1',
+- stage: 'PROJECTION_COVERED <- IXSCAN',
+- totalDocsExamined: 0,
+- totalKeysExamined: 16124,
+- nReturned: 16124,
+- executionTimeMillis: 18
+
+### 2) Sem `_id: 0`: projeção `{ container: 1 }`
+
+```javascript
+db.movimentacoes.find(
+  { tipo: "inspecao", terminal: "T4" },
+  { container: 1 }
+).explain("executionStats")
+```
+
+- indice: 'tipo_1_terminal_1_container_1',
+- stage: 'PROJECTION_SIMPLE <- FETCH <- IXSCAN',
+- totalDocsExamined: 16124,
+- totalKeysExamined: 16124,
+- nReturned: 16124,
+- executionTimeMillis: 38
+
+Script: [mongo/A4.js](mongo/A4.js) | Saída: [mongo/A4_saida.txt](mongo/A4_saida.txt)
+
+### O que muda e porque
+
+| | 1) `{ _id: 0, container: 1 }` | 2) `{ container: 1 }` |
+|---|---|---|
+| Stage | PROJECTION_COVERED <- IXSCAN | PROJECTION_SIMPLE <- FETCH <- IXSCAN |
+| totalDocsExamined | 0 | 16124 |
+| totalKeysExamined | 16124 | 16124 |
+| executionTimeMillis | 18 | 38 |
+
+No find, o _id vem na projeção por padrão, a menos que seja excluído explicitamente. Então `{ container: 1 }` na prática pede `{ _id: 1, container: 1 }`. O `_id` não está no índice `{ tipo, terminal, container }`, e o índice sozinho deixa de ter todos os campos do resultado. Para cada chave encontrada pelo IXSCAN, o estágio FETCH precisa ler o documento (16124 leituras) só para pegar o `_id`
+
+
+# Parte B — Aggregation Pipeline (30 pontos)
+
+## B1. Relatório gerencial (8 pontos)
+
+### Pipeline
+
+```javascript
+db.movimentacoes.aggregate([
+  { $match: { classe: "Refrigerado", ts: { $gte: ISODate("2026-04-01T00:00:00Z") } } },
+  { $group: {
+      _id: "$terminal",
+      total_movimentacoes: { $sum: 1 },
+      peso_total: { $sum: "$peso_kg" },
+      peso_medio: { $avg: "$peso_kg" },
+      maior_peso: { $max: "$peso_kg" }
+  } },
+  { $sort: { peso_total: -1 } },
+  { $limit: 3 },
+  { $project: {
+      _id: 0,
+      terminal: "$_id",
+      total_movimentacoes: "$total_movimentacoes",
+      peso_total: "$peso_total",
+      peso_medio: { $round: ["$peso_medio", 2] },
+      maior_peso: "$maior_peso"
+  } }
+])
+```
+
+### Resultado:
+
+| terminal | total_movimentacoes | peso_total | peso_medio | maior_peso |
+|---|---|---|---|---|
+| T2 | 14024 | 224842255 | 16032.68 | 30996 |
+| T3 | 13971 | 224807218 | 16090.99 | 30999 |
+| T4 | 14079 | 224752356 | 15963.66 | 30999 |
+
+### Índice:
+
+```javascript
+db.movimentacoes.createIndex({ classe: 1, ts: 1, terminal: 1, peso_kg: 1 })
+```
+
+- `classe`: igualdade do `$match`.
+- `ts`: range (`$gte`) do `$match`.
+- `terminal` e `peso_kg`: únicos campos que o `$group` usa. Com eles na chave, o índice cobre o pipeline e nenhum documento precisa ser lido.
+
+### Comprovação:
+
+| | Antes do índice | Depois do índice |
+|---|---|---|
+| Plano | $project <- $sort <- GROUP <- COLLSCAN | $project  $sort <- GROUP <- PROJECTION_COVERED <- IXSCAN |
+| totalDocsExamined | 400000 | 0 |
+| totalKeysExamined | 0 | 70040 |
+| **Documentos que entraram no `$group`** | **70040** | **70040** |
+| Grupos gerados | 5 | 5 |
+| executionTimeMillis | 165 | 51 |
+
+**70040 documentos entraram no `$group`.** Esse valor é o `nReturned` do estágio que alimenta o `group` no `executionStages`. Ele é o mesmo antes e depois, porque o índice não muda o que entra no `$group`, só o custo para chegar lá. Antes, o COLLSCAN lia os 400000 documentos e descartava 329960. Depois, o IXSCAN lê só as 70040 chaves da faixa `classe = Refrigerado` e `ts ≥ 2026-04-01`, sem abrir nenhum documento.
+
+Script: [mongo/B1.js](mongo/B1.js) | Saída completa (com o JSON do explain): [mongo/B1_saida.txt](mongo/B1_saida.txt)
+
+## B2. Debug Arquitetural (12 pontos)
+
+### a) Saída do pipeline original
+
+```javascript
+db.movimentacoes.aggregate([
+  { $project: { terminal: 1, classe: 1 } },
+  {
+    $group: {
+      _id: { terminal: "$terminal", classe: "$classe" },
+      kg_total: { $sum: "peso_kg" },
+      mov: { $sum: 1 }
+    }
+  },
+  { $limit: 3 },
+  { $sort: { kg_total: -1 } },
+  { $match: { "_id.classe": "Refrigerado" } }
+])
+```
+
+```
+[
+  {
+    _id: {
+      terminal: 'T1',
+      classe: 'Refrigerado'
+    },
+    kg_total: 0,
+    mov: 19856
+  }
+]
+```
+
+### b) Pipeline corrigido
+
+```javascript
+db.movimentacoes.aggregate([
+  { $match: { classe: "Refrigerado" } },
+  { $group: { _id: "$terminal", kg_total: { $sum: "$peso_kg" }, mov: { $sum: 1 } } },
+  { $sort: { kg_total: -1 } },
+  { $limit: 3 },
+  { $project: { _id: 0, terminal: "$_id", kg_total: "$kg_total", mov: "$mov" } }
+])
+```
+
+```
+[
+  {
+    terminal: 'T4',
+    kg_total: 321551526,
+    mov: 20049
+  },
+  {
+    terminal: 'T2',
+    kg_total: 321512580,
+    mov: 20106
+  },
+  {
+    terminal: 'T3',
+    kg_total: 320591467,
+    mov: 19985
+  },
+  {
+    terminal: 'T5',
+    kg_total: 320556473,
+    mov: 20066
+  },
+  {
+    terminal: 'T1',
+    kg_total: 317130089,
+    mov: 19856
+  }
+]
+```
+
+**Comprovação:**
+
+1. **Soma independente em JavaScript.** Um `find` + `forEach`, sem `aggregate`, somou os documentos Refrigerado por terminal. O ranking completo foi T4, T2, T3, T5 e T1. O top 3 é idêntico ao do pipeline corrigido pois foi `top 3 iguais ao pipeline corrigido: true`
+2. **Código de autenticidade.** O gerador calculou `LP-260065492-20049-80461` a partir de Refrigerado + T4. No pipeline corrigido, T4 tem `mov = 20049` e `321551526 % 99991 = 80461`: bate exatamente.
+
+### d) Impacto da refatoração
+
+| | Original | Corrigido |
+|---|---|---|
+| Plano | $sort <- $match <- $limit <- GROUP <- COLLSCAN | $project <- $sort <- GROUP <- PROJECTION_COVERED <- IXSCAN |
+| totalDocsExamined | 400000 | 0 |
+| totalKeysExamined | 0 | 100062 |
+| Entraram no `$group` | 400000 | 100062 |
+| Grupos gerados | 20 | 5 |
+| executionTimeMillis | 131 | 37 |
+
+Com o `$match` no início, o filtro de classe vai para a camada de consulta e passa a usar o índice `{ classe, ts, terminal, peso_kg }` criado no B1como esse índice começa por `classe` e contém `terminal` e `peso_kg`, o plano é coberto (PROJECTION_COVERED <- IXSCAN) e nenhum documento é lido (400000 -> 0). O original fazia COLLSCAN porque o filtro vinha depois do `$group`, cuja saída não tem índice. Em CPU, o `$group` passa a processar 100062 chaves de índice em vez de 400000 documentos, e o tempo caiu de +130ms para 36/37 ms. Em RAM, os 400000 documentos inteiros deixam de ser carregados no cache, a tabela do `$group` cai de 20 para 5 acumuladores, e o otimizador junta o `$sort` e o `$limit` num top que guarda só 3 resultados em memória, em vez de ordenar todos os grupos
+
+Script: [mongo/B2.js](mongo/B2.js) | Saída: [mongo/B2_saida.txt](mongo/B2_saida.txt)
 
